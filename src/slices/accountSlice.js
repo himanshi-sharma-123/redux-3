@@ -1,0 +1,53 @@
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
+const initialState = {
+  amount: 10,
+};
+
+export const getUserAccount = createAsyncThunk(
+  "account/getUser",
+  async (userId, thunkAPI) => {
+    const { data } = await axios.get(
+      `http://localhost:8080/accounts/${userId}`
+    );
+    return data.amount;
+  }
+);
+
+export const accountSlice = createSlice({
+  name: "account", //name in actions in front of
+  initialState,
+  reducers: {
+    increment: (state) => {
+      // Redux Toolkit allows us to write "mutating" logic in reducers. It
+      // doesn't actually mutate the state because it uses the Immer library,
+      // which detects changes to a "draft state" and produces a brand new
+      // immutable state based off those changes
+      state.amount += 1; //immer library (makes copy automatically)
+    },
+    decrement: (state) => {
+      state.amount -= 1;
+    },
+    incrementByAmount: (state, action) => {
+      state.amount += action.payload;
+    },
+  },
+
+  extraReducers: (builder) => {
+    builder.addCase(getUserAccount.fulfilled, (state, action) => {
+      state.amount = action.payload;
+      state.pending = false;
+    });
+    builder.addCase(getUserAccount.pending, (state, action) => {
+      state.pending = true;
+    });
+    builder.addCase(getUserAccount.rejected, (state, action) => {
+      state.error = action.error;
+    });
+  },
+});
+
+// Action creators are generated for each case reducer function
+export const { increment, decrement, incrementByAmount } = accountSlice.actions;
+
+export default accountSlice.reducer; // that reducer which exprect redux
